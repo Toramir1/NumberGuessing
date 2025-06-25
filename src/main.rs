@@ -1,11 +1,13 @@
 mod util;
+
 use num_format::{Locale, ToFormattedString};
 use rand::Rng;
 use std::cmp::Ordering;
 use std::io;
 use std::ops::RangeInclusive;
 use std::process::exit;
-use crate::util::clear_console;
+use crossterm::style::Color;
+use crate::util::{clear_console, print_colored_message, print_error};
 
 const MODE_ONE_SHOT: u8 = 1;
 const MODE_REPEAT: u8 = 2;
@@ -14,7 +16,7 @@ fn main() {
     loop {
         println!("Please choose the mode you want to Play \n");
 
-        println!("Use the following:");
+        println!("Choose from the following:");
         println!("1. One Shot");
         println!("2. Multiple Guess");
         println!("3. Info");
@@ -29,8 +31,8 @@ fn main() {
         let parsed_selection: u8 = match selection.trim().parse() {
             Ok(num) => num,
             Err(_) => {
-                println!("Invalid input, please enter a number.");
-                return;
+                print_error("Invalid input, please enter a number.");
+                continue;
             }
         };
 
@@ -40,7 +42,8 @@ fn main() {
             3 => info(),
             4 => exit(0),
             _ => {
-                println!("Invalid selection, going back to menu");
+                print_error("Invalid selection, going back to menu");
+                continue;
             }
         }
     }
@@ -68,7 +71,7 @@ fn one_shot(range: RangeInclusive<u32>) {
         };
 
         if guess_as_number == secret_number {
-            println!("Congratulations! You guessed the secret number.");
+            print_colored_message("Congratulations! You guessed the secret number.", Color::Green);
             break;
         } else {
             clear_console();
@@ -103,13 +106,15 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
             Err(_) => continue,
         };
 
-        println!("You guessed: {}", guess);
+        println!("You guessed: {}", &guess);
 
         match guess.cmp(&secret_number) {
             Ordering::Less => println!("Too small!"),
             Ordering::Greater => println!("Too big!"),
             Ordering::Equal => {
-                println!("You win!");
+                print_colored_message("\n You win! \n", Color::Green);
+                println!("Press Enter to return to the main menu...");
+                let _ = io::stdin().read_line(&mut String::new());
                 main()
             }
         }
@@ -118,17 +123,19 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
 
 fn info() {
     clear_console();
-    println!("The One Shot mode lets you make only a single guess and generates a new random number everytime you fail \n");
+    print_colored_message("The One Shot mode lets you make only a single guess and generates a new random number every time you fail.\n", Color::Yellow);
 
-    println!(
-        "The Multiple Guesses mode lets you make guesses until you get the correct number \
-    with hints if your guess was higher or lower than the secret number"
+    print_colored_message(
+        "The Multiple Guesses mode lets you make guesses until you get the correct number, \
+        with hints if your guess was higher or lower than the secret number.\n",
+        Color::Yellow,
     );
 
+    println!("Press Enter to return to the main menu...");
     let _ = io::stdin().read_line(&mut String::new());
 }
 
-fn difficulty_selection(gamemode: u8) {
+fn difficulty_selection(game_mode: u8) {
     println!("Please select the difficulty you want to Play");
     println!("Difficulty affects the range of numbers \n");
 
@@ -145,12 +152,16 @@ fn difficulty_selection(gamemode: u8) {
         .read_line(&mut selection)
         .expect("Failed to read line");
 
+    let mut is_custom: bool = false;
+
     let range = match selection.trim() {
         "1" => 1..=10,
         "2" => 1..=100,
         "3" => 1..=1000,
         "4" => 1..=1_000_000,
         "5" => {
+            is_custom = true;
+
             let mut high_end = String::new();
             println!("What should the highest number of the range be?");
             io::stdin()
@@ -160,19 +171,26 @@ fn difficulty_selection(gamemode: u8) {
             1..=end
         }
         _ => {
-            println!("Invalid selection, defaulting to Easy.");
-            1..=10
+            print_error("Invalid selection, defaulting to Medium.");
+            1..=100
         }
     };
 
-    match gamemode {
+    match game_mode {
         MODE_ONE_SHOT => one_shot(range),
         MODE_REPEAT => {
-            let modified_range = *range.start()..=(*range.end() * 10);
-            repeat_guesses(modified_range);
-        },
+            if !is_custom {
+                let start = *range.start();
+                let end = *range.end() * 10;
+                let modified_range = start..=end;
+                repeat_guesses(modified_range);
+            }
+            else if is_custom {
+                repeat_guesses(range);
+            }
+        }
         _ => {
-            println!("Invalid selection");
+            print_error("Invalid selection");
         }
     }
 }

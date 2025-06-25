@@ -10,3 +10,7 @@ pub fn clear_console() {
 pub fn print_colored_message(msg: &str, color: Color) {
     println!("{}", msg.with(color));
 }
+
+pub fn print_error(msg: &str) {
+    print_colored_message(msg, Color::Red);
+}
