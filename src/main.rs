@@ -1,13 +1,13 @@
 mod util;
 
+use crate::util::{clear_console, print_colored_message, print_error, read_user_input};
+use crossterm::style::Color;
 use num_format::{Locale, ToFormattedString};
 use rand::Rng;
 use std::cmp::Ordering;
-use std::io;
 use std::ops::RangeInclusive;
 use std::process::exit;
-use crossterm::style::Color;
-use crate::util::{clear_console, print_colored_message, print_error};
+use std::{io};
 
 const MODE_ONE_SHOT: u8 = 1;
 const MODE_REPEAT: u8 = 2;
@@ -23,11 +23,7 @@ fn main() {
         println!("4. Credits");
         println!("5. Exit");
 
-        let mut selection = String::new();
-
-        io::stdin()
-            .read_line(&mut selection)
-            .expect("Failed to read line");
+        let selection = read_user_input();
 
         let parsed_selection: u8 = match selection.trim().parse() {
             Ok(num) => num,
@@ -59,11 +55,7 @@ fn one_shot(range: RangeInclusive<u32>) {
             range.end().to_formatted_string(&Locale::fr)
         );
 
-        let mut guess = String::new();
-
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read line");
+        let guess = read_user_input();
 
         println!("You guessed: {}", guess);
 
@@ -73,7 +65,10 @@ fn one_shot(range: RangeInclusive<u32>) {
         };
 
         if guess_as_number == secret_number {
-            print_colored_message("Congratulations! You guessed the secret number.", Color::Green);
+            print_colored_message(
+                "Congratulations! You guessed the secret number.",
+                Color::Green,
+            );
             break;
         } else {
             clear_console();
@@ -97,11 +92,7 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
             range.end().to_formatted_string(&Locale::fr)
         );
 
-        let mut guess = String::new();
-
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read line");
+        let guess = read_user_input();
 
         let guess: u32 = match guess.trim().parse() {
             Ok(num) => num,
@@ -148,11 +139,7 @@ fn difficulty_selection(game_mode: u8) {
     println!("4. Impossible");
     println!("5. Custom");
 
-    let mut selection = String::new();
-
-    io::stdin()
-        .read_line(&mut selection)
-        .expect("Failed to read line");
+    let selection = read_user_input();
 
     let mut is_custom: bool = false;
 
@@ -164,11 +151,8 @@ fn difficulty_selection(game_mode: u8) {
         "5" => {
             is_custom = true;
 
-            let mut high_end = String::new();
+            let high_end = read_user_input();
             println!("What should the highest number of the range be?");
-            io::stdin()
-                .read_line(&mut high_end)
-                .expect("Failed to read line");
             let end = high_end.trim().parse().expect("Please type a number!");
             1..=end
         }
@@ -186,8 +170,7 @@ fn difficulty_selection(game_mode: u8) {
                 let end = *range.end() * 10;
                 let modified_range = start..=end;
                 repeat_guesses(modified_range);
-            }
-            else if is_custom {
+            } else if is_custom {
                 repeat_guesses(range);
             }
         }
@@ -198,7 +181,14 @@ fn difficulty_selection(game_mode: u8) {
 }
 
 fn credits() {
-    print_colored_message("\nDevelopment: Toramir", Color::Rgb {r: 195, g: 0, b: 255});
+    print_colored_message(
+        "\nDevelopment: Toramir",
+        Color::Rgb {
+            r: 195,
+            g: 0,
+            b: 255,
+        },
+    );
     print_colored_message("All the other 90% of the Code: ChatGPT", Color::DarkCyan);
 
     println!("Press Enter to return to the main menu...");
