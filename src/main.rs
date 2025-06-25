@@ -13,14 +13,15 @@ const MODE_ONE_SHOT: u8 = 1;
 const MODE_REPEAT: u8 = 2;
 
 fn main() {
+    clear_console();
     loop {
         println!("Please choose the mode you want to Play \n");
 
-        println!("Choose from the following:");
         println!("1. One Shot");
-        println!("2. Multiple Guess");
+        println!("2. Multiple Guesses");
         println!("3. Info");
-        println!("4. Exit");
+        println!("4. Credits");
+        println!("5. Exit");
 
         let mut selection = String::new();
 
@@ -40,7 +41,8 @@ fn main() {
             1 => difficulty_selection(parsed_selection),
             2 => difficulty_selection(parsed_selection),
             3 => info(),
-            4 => exit(0),
+            4 => credits(),
+            5 => exit(0),
             _ => {
                 print_error("Invalid selection, going back to menu");
                 continue;
@@ -193,4 +195,12 @@ fn difficulty_selection(game_mode: u8) {
             print_error("Invalid selection");
         }
     }
+}
+
+fn credits() {
+    print_colored_message("\nDevelopment: Toramir", Color::Rgb {r: 195, g: 0, b: 255});
+    print_colored_message("All the other 90% of the Code: ChatGPT", Color::DarkCyan);
+
+    println!("Press Enter to return to the main menu...");
+    let _ = io::stdin().read_line(&mut String::new());
 }
