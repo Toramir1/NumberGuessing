@@ -1,6 +1,6 @@
 mod util;
 
-use crate::util::{clear_console, print_colored_message, print_error, read_user_input};
+use crate::util::{clear_console, loss, print_colored_message, print_error, read_user_input, unicorn, win_screen};
 use crossterm::style::Color;
 use num_format::{Locale, ToFormattedString};
 use rand::Rng;
@@ -39,6 +39,7 @@ fn main() {
             3 => info(),
             4 => credits(),
             5 => exit(0),
+            69 => secret(),
             _ => {
                 print_error("Invalid selection, going back to menu");
                 continue;
@@ -65,17 +66,13 @@ fn one_shot(range: RangeInclusive<u32>) {
         };
 
         if guess_as_number == secret_number {
-            print_colored_message(
-                "Congratulations! You guessed the secret number.",
-                Color::Green,
-            );
+            win_screen();
             break;
         } else {
             clear_console();
-            println!("You guessed {}.", guess_as_number);
-            println!("Your guess and the secret number do not match.");
-            println!("The secret number was {}", secret_number);
-            println!("Generating new Random number;");
+            loss();
+            println!("The secret number was {}.", secret_number);
+            println!("Generated new Random number;");
         }
     }
 }
@@ -102,10 +99,10 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
         println!("You guessed: {}", &guess);
 
         match guess.cmp(&secret_number) {
-            Ordering::Less => println!("Too small!"),
-            Ordering::Greater => println!("Too big!"),
+            Ordering::Less => print_colored_message("Too small!", Color::Yellow),
+            Ordering::Greater => print_colored_message("Too big!", Color::Yellow),
             Ordering::Equal => {
-                print_colored_message("\n You win! \n", Color::Green);
+                win_screen();
                 println!("Press Enter to return to the main menu...");
                 let _ = io::stdin().read_line(&mut String::new());
                 main()
@@ -193,4 +190,8 @@ fn credits() {
 
     println!("Press Enter to return to the main menu...");
     let _ = io::stdin().read_line(&mut String::new());
+}
+
+fn secret() {
+    unicorn()
 }
