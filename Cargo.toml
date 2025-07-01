@@ -6,4 +6,4 @@ edition = "2024"
 [dependencies]
 rand = "0.9.0"
 num-format = "0.4.4"
-crossterm = "0.28.1"
+crossterm = "0.29.0"
