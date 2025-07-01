@@ -96,7 +96,7 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
             Err(_) => continue,
         };
 
-        println!("You guessed: {}", &guess);
+        println!("You guessed: {}", guess);
 
         match guess.cmp(&secret_number) {
             Ordering::Less => print_colored_message("Too small!", Color::Yellow),
