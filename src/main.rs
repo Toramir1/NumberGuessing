@@ -71,7 +71,21 @@ fn one_shot(range: RangeInclusive<u32>) {
             Err(_) => continue,
         };
 
-        validate_guess(secret_number, guess_as_number, MODE_ONE_SHOT);
+        if guess_as_number > secret_number {
+            print_error("Please enter a number smaller than range");
+            continue;
+        }
+
+        if guess_as_number == secret_number {
+            win_screen();
+            break;
+        } else {
+            clear_console();
+            loss();
+            println!("The secret number was {}.", secret_number);
+            println!("Generated new Random number;");
+            break;
+        }
     }
 }
 
@@ -97,10 +111,24 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
             Ok(num) => num,
             Err(_) => continue,
         };
+        
+        if guess > secret_number {
+            print_error("Please enter a number smaller than range");
+            continue;
+        }
 
         println!("You guessed: {}", guess);
 
-        validate_guess(secret_number, guess, MODE_REPEAT);
+        match guess.cmp(&secret_number) {
+            Ordering::Less => print_colored_message("Too small!", Color::Yellow),
+            Ordering::Greater => print_colored_message("Too big!", Color::Yellow),
+            Ordering::Equal => {
+                win_screen();
+                println!("Press Enter to return to the main menu...");
+                let _ = io::stdin().read_line(&mut String::new());
+                main()
+            }
+        }
     }
 }
 
@@ -189,37 +217,6 @@ fn credits() {
 
 fn secret() {
     unicorn()
-}
-
-fn validate_guess(secret_number: u32, guess: u32, game_mode: u8) {
-    match game_mode {
-        1 => match guess.cmp(&secret_number) {
-            Ordering::Less => {
-                loss();
-                await_user_input();
-            }
-            Ordering::Greater => {
-                loss();
-                await_user_input();
-            }
-            Ordering::Equal => {
-                win_screen();
-                await_user_input();
-            }
-        },
-        2 => match guess.cmp(&secret_number) {
-            Ordering::Less => print_colored_message("Too small!", Color::Yellow),
-            Ordering::Greater => print_colored_message("Too big!", Color::Yellow),
-            Ordering::Equal => {
-                win_screen();
-                await_user_input();
-            }
-        },
-        _ => {
-            print_error("Invalid selection");
-            main()
-        }
-    }
 }
 
 fn await_user_input() {
