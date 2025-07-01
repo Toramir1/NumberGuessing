@@ -1,13 +1,15 @@
 mod util;
 
-use crate::util::{clear_console, loss, print_colored_message, print_error, read_user_input, unicorn, win_screen};
+use crate::util::{
+    clear_console, loss, print_colored_message, print_error, read_user_input, unicorn, win_screen,
+};
 use crossterm::style::Color;
 use num_format::{Locale, ToFormattedString};
 use rand::Rng;
 use std::cmp::Ordering;
+use std::io;
 use std::ops::RangeInclusive;
 use std::process::exit;
-use std::{io};
 
 const MODE_ONE_SHOT: u8 = 1;
 const MODE_REPEAT: u8 = 2;
@@ -58,6 +60,10 @@ fn one_shot(range: RangeInclusive<u32>) {
 
         let guess = read_user_input();
 
+        if guess.trim() == "exit" {
+            break;
+        }
+
         println!("You guessed: {}", guess);
 
         let guess_as_number: u32 = match guess.trim().parse() {
@@ -65,15 +71,7 @@ fn one_shot(range: RangeInclusive<u32>) {
             Err(_) => continue,
         };
 
-        if guess_as_number == secret_number {
-            win_screen();
-            break;
-        } else {
-            clear_console();
-            loss();
-            println!("The secret number was {}.", secret_number);
-            println!("Generated new Random number;");
-        }
+        validate_guess(secret_number, guess_as_number, MODE_ONE_SHOT);
     }
 }
 
@@ -91,6 +89,10 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
 
         let guess = read_user_input();
 
+        if guess.trim() == "exit" {
+            break;
+        }
+
         let guess: u32 = match guess.trim().parse() {
             Ok(num) => num,
             Err(_) => continue,
@@ -98,22 +100,16 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
 
         println!("You guessed: {}", guess);
 
-        match guess.cmp(&secret_number) {
-            Ordering::Less => print_colored_message("Too small!", Color::Yellow),
-            Ordering::Greater => print_colored_message("Too big!", Color::Yellow),
-            Ordering::Equal => {
-                win_screen();
-                println!("Press Enter to return to the main menu...");
-                let _ = io::stdin().read_line(&mut String::new());
-                main()
-            }
-        }
+        validate_guess(secret_number, guess, MODE_REPEAT);
     }
 }
 
 fn info() {
     clear_console();
-    print_colored_message("The One Shot mode lets you make only a single guess and generates a new random number every time you fail.\n", Color::Yellow);
+    print_colored_message(
+        "The One Shot mode lets you make only a single guess and generates a new random number every time you fail.\n",
+        Color::Yellow,
+    );
 
     print_colored_message(
         "The Multiple Guesses mode lets you make guesses until you get the correct number, \
@@ -121,8 +117,7 @@ fn info() {
         Color::Yellow,
     );
 
-    println!("Press Enter to return to the main menu...");
-    let _ = io::stdin().read_line(&mut String::new());
+    await_user_input();
 }
 
 fn difficulty_selection(game_mode: u8) {
@@ -146,10 +141,11 @@ fn difficulty_selection(game_mode: u8) {
         "3" => 1..=1000,
         "4" => 1..=1_000_000,
         "5" => {
+            println!("What should the highest number of the range be?");
+
             is_custom = true;
 
             let high_end = read_user_input();
-            println!("What should the highest number of the range be?");
             let end = high_end.trim().parse().expect("Please type a number!");
             1..=end
         }
@@ -188,10 +184,46 @@ fn credits() {
     );
     print_colored_message("All the other 90% of the Code: ChatGPT", Color::DarkCyan);
 
-    println!("Press Enter to return to the main menu...");
-    let _ = io::stdin().read_line(&mut String::new());
+    await_user_input();
 }
 
 fn secret() {
     unicorn()
+}
+
+fn validate_guess(secret_number: u32, guess: u32, game_mode: u8) {
+    match game_mode {
+        1 => match guess.cmp(&secret_number) {
+            Ordering::Less => {
+                loss();
+                await_user_input();
+            }
+            Ordering::Greater => {
+                loss();
+                await_user_input();
+            }
+            Ordering::Equal => {
+                win_screen();
+                await_user_input();
+            }
+        },
+        2 => match guess.cmp(&secret_number) {
+            Ordering::Less => print_colored_message("Too small!", Color::Yellow),
+            Ordering::Greater => print_colored_message("Too big!", Color::Yellow),
+            Ordering::Equal => {
+                win_screen();
+                await_user_input();
+            }
+        },
+        _ => {
+            print_error("Invalid selection");
+            main()
+        }
+    }
+}
+
+fn await_user_input() {
+    println!("Press Enter to return to the main menu...");
+    let _ = io::stdin().read_line(&mut String::new());
+    main()
 }
