@@ -1,6 +1,7 @@
 name: Rust
 
 on:
+  push:
   pull_request:
 
 env:
@@ -18,3 +19,11 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build
       run: cargo build --verbose --release
+
+    - name: Upload Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: binary-${{ matrix.os }}
+        path: |
+          target/release/*.exe
+          target/release/your_project_name
