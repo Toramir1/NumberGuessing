@@ -71,7 +71,7 @@ fn one_shot(range: RangeInclusive<u32>) {
             Err(_) => continue,
         };
 
-        if guess_as_number > secret_number {
+        if guess_as_number > *range.end() {
             print_error("Please enter a number smaller than range");
             continue;
         }
@@ -112,7 +112,7 @@ fn repeat_guesses(range: RangeInclusive<u32>) {
             Err(_) => continue,
         };
         
-        if guess > secret_number {
+        if guess > *range.end() {
             print_error("Please enter a number smaller than range");
             continue;
         }
@@ -144,6 +144,8 @@ fn info() {
         with hints if your guess was higher or lower than the secret number.\n",
         Color::Yellow,
     );
+    
+    print_colored_message("You can return to the main menu from any mode by typing exit \n", Color::Yellow);
 
     await_user_input();
 }
@@ -158,8 +160,14 @@ fn difficulty_selection(game_mode: u8) {
     println!("3. Hard");
     println!("4. Impossible");
     println!("5. Custom");
+    println!("6. Back to Menu");
 
     let selection = read_user_input();
+
+    if selection.trim() == "6" {
+        main();
+        return;
+    }
 
     let mut is_custom: bool = false;
 
