@@ -1,7 +1,6 @@
 name: Rust
 
 on:
-  push:
   pull_request:
 
 env:
@@ -25,5 +24,4 @@ jobs:
       with:
         name: binary-${{ matrix.os }}
         path: |
-          target/release/*.exe
-          target/release/your_project_name
+          target/release/*
