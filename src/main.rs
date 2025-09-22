@@ -11,8 +11,10 @@ use std::io;
 use std::ops::RangeInclusive;
 use std::process::exit;
 
-const MODE_ONE_SHOT: u8 = 1;
-const MODE_REPEAT: u8 = 2;
+enum GameMode {
+    OneShot,
+    Repeat
+}
 
 fn main() {
     clear_console();
@@ -36,8 +38,8 @@ fn main() {
         };
 
         match parsed_selection {
-            1 => difficulty_selection(parsed_selection),
-            2 => difficulty_selection(parsed_selection),
+            1 => difficulty_selection(GameMode::OneShot),
+            2 => difficulty_selection(GameMode::Repeat),
             3 => info(),
             4 => credits(),
             5 => exit(0),
@@ -150,7 +152,7 @@ fn info() {
     await_user_input();
 }
 
-fn difficulty_selection(game_mode: u8) {
+fn difficulty_selection(game_mode: GameMode) {
     println!("Please select the difficulty you want to Play");
     println!("Difficulty affects the range of numbers \n");
 
@@ -192,8 +194,8 @@ fn difficulty_selection(game_mode: u8) {
     };
 
     match game_mode {
-        MODE_ONE_SHOT => one_shot(range),
-        MODE_REPEAT => {
+        GameMode::OneShot => one_shot(range),
+        GameMode::Repeat => {
             if !is_custom {
                 let start = *range.start();
                 let end = *range.end() * 10;
@@ -202,9 +204,6 @@ fn difficulty_selection(game_mode: u8) {
             } else if is_custom {
                 repeat_guesses(range);
             }
-        }
-        _ => {
-            print_error("Invalid selection");
         }
     }
 }
